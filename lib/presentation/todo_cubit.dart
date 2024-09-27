@@ -15,30 +15,24 @@ class TodoCubit extends Cubit<List<Todo>> {
   }
 
   Future<void> addTodo(String text, String desc) async {
-    final newTodo = Todo(id: DateTime.now().millisecondsSinceEpoch, text: text, desc: desc);
+    final newTodo =
+        Todo(id: DateTime.now().millisecondsSinceEpoch, text: text, desc: desc);
 
     await todoRepo.addTodo(newTodo);
 
     loadTodos();
-
   }
 
-  Future<void> deleteTodo(Todo todo) async{
-
+  Future<void> deleteTodo(Todo todo) async {
     await todoRepo.deleteTodo(todo);
 
     loadTodos();
   }
 
-
-  Future<void> toggleCompletion(Todo todo)async {
-
+  Future<void> toggleCompletion(Todo todo) async {
     final updatedTodo = todo.toggleCompletiom();
 
     await todoRepo.updateTodo(updatedTodo);
-        loadTodos();
-
-
-
+    loadTodos();
   }
 }
