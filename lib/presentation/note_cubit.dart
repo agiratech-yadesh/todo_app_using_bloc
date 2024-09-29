@@ -15,14 +15,21 @@ class NoteCubit extends Cubit<List<Note>> {
     emit(noteList);
   }
 
-  Future<void> addNote(String? heading, String note) async {
+  Future<void> addNote(String heading, String note, DateTime dateTime) async {
     final newNote = Note(
         id: DateTime.now().millisecondsSinceEpoch,
         heading: heading,
-        note: note);
+        note: note,
+        dateTime: dateTime);
 
     await noteRepo.addNote(newNote);
 
+    loadNotes();
+  }
+
+  Future<void> updateNote(Note updatedNote) async {
+    await noteRepo.updateNote(
+        updatedNote); // Assuming your repository has an update method
     loadNotes();
   }
 

@@ -669,13 +669,18 @@ const NoteIsarSchema = CollectionSchema(
   name: r'NoteIsar',
   id: 513149557421112620,
   properties: {
-    r'heading': PropertySchema(
+    r'dateTime': PropertySchema(
       id: 0,
+      name: r'dateTime',
+      type: IsarType.dateTime,
+    ),
+    r'heading': PropertySchema(
+      id: 1,
       name: r'heading',
       type: IsarType.string,
     ),
     r'note': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'note',
       type: IsarType.string,
     )
@@ -711,8 +716,9 @@ void _noteIsarSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.heading);
-  writer.writeString(offsets[1], object.note);
+  writer.writeDateTime(offsets[0], object.dateTime);
+  writer.writeString(offsets[1], object.heading);
+  writer.writeString(offsets[2], object.note);
 }
 
 NoteIsar _noteIsarDeserialize(
@@ -722,9 +728,10 @@ NoteIsar _noteIsarDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = NoteIsar();
-  object.heading = reader.readString(offsets[0]);
+  object.dateTime = reader.readDateTime(offsets[0]);
+  object.heading = reader.readString(offsets[1]);
   object.id = id;
-  object.note = reader.readString(offsets[1]);
+  object.note = reader.readString(offsets[2]);
   return object;
 }
 
@@ -736,8 +743,10 @@ P _noteIsarDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -833,6 +842,59 @@ extension NoteIsarQueryWhere on QueryBuilder<NoteIsar, NoteIsar, QWhereClause> {
 
 extension NoteIsarQueryFilter
     on QueryBuilder<NoteIsar, NoteIsar, QFilterCondition> {
+  QueryBuilder<NoteIsar, NoteIsar, QAfterFilterCondition> dateTimeEqualTo(
+      DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'dateTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<NoteIsar, NoteIsar, QAfterFilterCondition> dateTimeGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'dateTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<NoteIsar, NoteIsar, QAfterFilterCondition> dateTimeLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'dateTime',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<NoteIsar, NoteIsar, QAfterFilterCondition> dateTimeBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'dateTime',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<NoteIsar, NoteIsar, QAfterFilterCondition> headingEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1153,6 +1215,18 @@ extension NoteIsarQueryLinks
     on QueryBuilder<NoteIsar, NoteIsar, QFilterCondition> {}
 
 extension NoteIsarQuerySortBy on QueryBuilder<NoteIsar, NoteIsar, QSortBy> {
+  QueryBuilder<NoteIsar, NoteIsar, QAfterSortBy> sortByDateTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dateTime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<NoteIsar, NoteIsar, QAfterSortBy> sortByDateTimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dateTime', Sort.desc);
+    });
+  }
+
   QueryBuilder<NoteIsar, NoteIsar, QAfterSortBy> sortByHeading() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'heading', Sort.asc);
@@ -1180,6 +1254,18 @@ extension NoteIsarQuerySortBy on QueryBuilder<NoteIsar, NoteIsar, QSortBy> {
 
 extension NoteIsarQuerySortThenBy
     on QueryBuilder<NoteIsar, NoteIsar, QSortThenBy> {
+  QueryBuilder<NoteIsar, NoteIsar, QAfterSortBy> thenByDateTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dateTime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<NoteIsar, NoteIsar, QAfterSortBy> thenByDateTimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dateTime', Sort.desc);
+    });
+  }
+
   QueryBuilder<NoteIsar, NoteIsar, QAfterSortBy> thenByHeading() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'heading', Sort.asc);
@@ -1219,6 +1305,12 @@ extension NoteIsarQuerySortThenBy
 
 extension NoteIsarQueryWhereDistinct
     on QueryBuilder<NoteIsar, NoteIsar, QDistinct> {
+  QueryBuilder<NoteIsar, NoteIsar, QDistinct> distinctByDateTime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'dateTime');
+    });
+  }
+
   QueryBuilder<NoteIsar, NoteIsar, QDistinct> distinctByHeading(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1239,6 +1331,12 @@ extension NoteIsarQueryProperty
   QueryBuilder<NoteIsar, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<NoteIsar, DateTime, QQueryOperations> dateTimeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'dateTime');
     });
   }
 

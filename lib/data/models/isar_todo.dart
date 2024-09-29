@@ -43,12 +43,13 @@ class NoteIsar{
   Id id = Isar.autoIncrement;
   late String heading;
   late String note;
+  late DateTime dateTime;
 
 
 
   Note toDomain(){
 
-    return Note(id: id, note: note);
+    return Note(id: id, note: note, heading: heading, dateTime: dateTime);
   }
 
 
@@ -56,7 +57,8 @@ class NoteIsar{
     return NoteIsar()
     ..id = note.id
     ..heading = note.heading!
-    ..note = note.note;
+    ..note = note.note
+    ..dateTime = note.dateTime;
   }
 
   
