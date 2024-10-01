@@ -7,6 +7,7 @@ import 'package:to_do_bloc/domain/models/todo.dart';
 import 'package:to_do_bloc/domain/repository/note_repo.dart';
 import 'package:to_do_bloc/domain/repository/todo_repo.dart';
 import 'package:to_do_bloc/presentation/add_note.dart';
+import 'package:to_do_bloc/presentation/custom_location_float.dart';
 import 'package:to_do_bloc/presentation/note_cubit.dart';
 import 'package:to_do_bloc/presentation/todo_cubit.dart';
 import 'navigation_cubit.dart'; // Import the NavigationCubit
@@ -20,19 +21,19 @@ class TodoView extends StatelessWidget {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0XFF001F3F),
+        backgroundColor:  Colors.white,
         title: const Text(
           'Delete Confirmation',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
         ),
         content: const Text(
           'Are you sure you want to delete this item?',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.black),
         ),
         actions: [
           TextButton(
             style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
+                foregroundColor: Colors.grey,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8))),
             onPressed: () {
@@ -42,7 +43,7 @@ class TodoView extends StatelessWidget {
           ),
           TextButton(
             style: TextButton.styleFrom(
-                backgroundColor: Colors.redAccent,
+                backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8))),
@@ -64,12 +65,12 @@ class TodoView extends StatelessWidget {
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
-              backgroundColor: const Color(0XFF001F3F),
+              backgroundColor:  Colors.white,
               title: const Center(
                 child: Text(
                   "Add Todo",
                   style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.w600),
+                      color: Colors.black, fontWeight: FontWeight.w600),
                 ),
               ),
               content: Column(
@@ -79,11 +80,11 @@ class TodoView extends StatelessWidget {
                   const Text(
                     'Title',
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w400),
+                        color: Colors.black, fontWeight: FontWeight.w400),
                   ),
                   TextField(
                     controller: titleTextController,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black),
                   ),
                   const SizedBox(
                     height: 30,
@@ -91,20 +92,20 @@ class TodoView extends StatelessWidget {
                   const Text(
                     'Description',
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w400),
+                        color: Colors.black, fontWeight: FontWeight.w400),
                   ),
                   TextField(
                     maxLines: 2,
                     maxLength: 100,
                     controller: descTextController,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.black),
                   ),
                 ],
               ),
               actions: [
                 TextButton(
                   style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
+                      foregroundColor: Colors.black54,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8))),
                   onPressed: () {
@@ -114,8 +115,8 @@ class TodoView extends StatelessWidget {
                 ),
                 TextButton(
                   style: TextButton.styleFrom(
-                      backgroundColor: const Color(0XFF4F6F52),
-                      foregroundColor: Colors.white,
+                      backgroundColor: const Color(0XFFF5DAD2),
+                      foregroundColor: Color(0XFF75A47F),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8))),
                   onPressed: () {
@@ -126,7 +127,7 @@ class TodoView extends StatelessWidget {
                           builder: (context) => AlertDialog(
                                 title: const Icon(
                                   Icons.warning_amber,
-                                  color: Colors.redAccent,
+                                  color: Colors.red,
                                 ),
                                 content: const Text(
                                   'Title or Description should not be empty',
@@ -174,19 +175,21 @@ class TodoView extends StatelessWidget {
       // Update system navigation bar color based on the current state
       if (state == 0) {
         SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-          systemNavigationBarColor: Color(0XFFEAD8B1), // Color when state is 0
+          systemNavigationBarColor: Color(0XFFBACD92), // Color when state is 0
         ));
       } else {
         SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-          systemNavigationBarColor: Color(0XFF001F3F), // Color for other states
+          systemNavigationBarColor: Color.fromARGB(255, 255, 255, 255), // Color for other states
         ));
       }
 
       return Scaffold(
         extendBody: true,
-        backgroundColor: const Color(0XFFFEFBF6),
+        
+        backgroundColor: const Color(0XFFFCFFE0),
         appBar: AppBar(
-          backgroundColor: const Color(0XFFFEFBF6),
+          toolbarHeight: 20,
+          backgroundColor: const Color(0XFFFCFFE0),
         ),
         // appBar: AppBar(
         //   title: const Text(
@@ -199,16 +202,21 @@ class TodoView extends StatelessWidget {
         //   centerTitle: true,
         //   backgroundColor: const Color(0XFF001F3F),
         // ),
+            floatingActionButtonLocation: CustomFloatingActionButtonLocation(),
+
         floatingActionButton: BlocBuilder<NavigationCubit, int>(
           builder: (context, state) => FloatingActionButton(
-            backgroundColor: const Color(0XFF001F3F),
-            foregroundColor: const Color(0XFFF7F7F8),
+            
+            
+            backgroundColor: const Color(0XFFF5DAD2),
+            foregroundColor: const Color(0XFF75A47F),
             onPressed: () {
               if (state == 0) {
                 _showAddTodoBox(context);
               } else {
                 showModalBottomSheet(
-                  barrierColor: const Color(0XFFEAD8B1),
+                  barrierColor: const Color(0XFFBACD92),
+                  barrierLabel: 'Add Note',
                   enableDrag: true,
                   isDismissible: true,
 
@@ -231,28 +239,80 @@ class TodoView extends StatelessWidget {
                                 style: TextStyle(
                                     fontSize: 22, fontWeight: FontWeight.w500),
                               ),
-                              IconButton(
-                                  onPressed: () {
-
-                                    if(noteTextController.text.isNotEmpty){
-                                        noteCubit.addNote(
-                                      headingTextController.text,
-                                      
-                                      noteTextController.text,
-                                      DateTime.now()
-                                      
-                                    );
-                                    Navigator.of(context).pop();
-                                      
+                              Row(
+                                children: [
 
 
-                                    } else{
 
-                                      FocusScope.of(context).unfocus();
-                                    }
+                                  IconButton(
+  onPressed: () {
+    if (noteTextController.text.isNotEmpty || headingTextController.text.isNotEmpty) {
+
+showDialog(context: context, builder: (context)=> AlertDialog(
+  alignment: Alignment.bottomCenter,
+  actionsAlignment: MainAxisAlignment.center,
+  actionsPadding: EdgeInsets.all(8),
+  actions: [
+
+    Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        TextButton(onPressed: (){
+          noteTextController.clear();
+          headingTextController.clear();
+
+          Navigator.of(context).pop();
+          
+
+
+
+        }, child: Text("Delete", style: TextStyle(color: Colors.red),)),
+
+         TextButton(onPressed: (){
+          Navigator.of(context).pop();
+
+        }, child: Text("Cancel", style: TextStyle(color: Colors.black54),))
+      ],
+    )
+
+
+  ],
+
+
+));      
+    }
+
+  },
+  icon: const Icon(Icons.more_vert),
+),
+
+
+
+
+                                  IconButton(
+                                      onPressed: () {
                                   
-                                  },
-                                  icon: const Icon(Icons.done))
+                                        if(noteTextController.text.isNotEmpty){
+                                            noteCubit.addNote(
+                                          headingTextController.text,
+                                          
+                                          noteTextController.text,
+                                          DateTime.now()
+                                          
+                                        );
+                                        Navigator.of(context).pop();
+                                          
+                                  
+                                  
+                                        } else{
+                                  
+                                          FocusScope.of(context).unfocus();
+                                        }
+                                      
+                                      },
+                                      icon: const Icon(Icons.done)),
+                                ],
+                              )
                             ],
                           ),
                           const SizedBox(
@@ -263,7 +323,7 @@ class TodoView extends StatelessWidget {
                               alignment: Alignment.topLeft,
                               child: Text(
                                 formattedDate,
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w400,
                                     color: Colors.grey),
@@ -273,8 +333,13 @@ class TodoView extends StatelessWidget {
                           ),
 
                           TextField(
+                            style: TextStyle(fontSize: 22),
                             controller: headingTextController,
+                            
                             decoration: const InputDecoration(
+                              
+                                                                          floatingLabelBehavior: FloatingLabelBehavior.never,
+
                                 labelText: 'Heading',
                                 labelStyle: TextStyle(
                                     color: Colors.grey,
@@ -288,6 +353,13 @@ class TodoView extends StatelessWidget {
                             autofocus: true,
                             controller: noteTextController,
                             decoration: const InputDecoration(
+                              labelText: 'Type...',
+                               labelStyle: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600),
+                                                                          floatingLabelBehavior: FloatingLabelBehavior.never,
+
                                 border: OutlineInputBorder(
                                     borderSide: BorderSide.none)),
                             maxLines: null,
@@ -303,29 +375,34 @@ class TodoView extends StatelessWidget {
             child: const Icon(Icons.add),
           ),
         ),
-        bottomNavigationBar: SafeArea(
-          child: BlocBuilder<NavigationCubit, int>(
-            builder: (context, state) {
-              return BottomNavigationBar(
-                items: const <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.add_task),
-                    label: 'Todo',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.note_add_outlined),
-                    label: 'Note',
-                  ),
-                ],
-                currentIndex: state,
-                backgroundColor: const Color(0XFFEAD8B1),
-                selectedItemColor: Colors.blue,
-                onTap: (index) =>
-                    context.read<NavigationCubit>().changeTab(index),
-              );
+       bottomNavigationBar: BlocBuilder<NavigationCubit, int>(
+  builder: (context, state) {
+    return BottomNavigationBar(
+      items: const <BottomNavigationBarItem>[
+        BottomNavigationBarItem(
+          icon: Padding(
+            padding: EdgeInsets.only(top: 5.0),
+            child: Icon(Icons.add_task),
+          ),
+          label: 'Todo',
+        ),
+        BottomNavigationBarItem(
+          icon: Padding(
+            padding: EdgeInsets.only(top: 5.0,),  
+            child: Icon(Icons.note_add_outlined),
+          ),
+          label: 'Note',
+        ),
+      ],
+      currentIndex: state,
+      backgroundColor: const Color(0XFFBACD92),
+      selectedItemColor: const Color(0XFFFCFFE0),
+      onTap: (index) => context.read<NavigationCubit>().changeTab(index),
+    );
+  
             },
           ),
-        ),
+        
         body: BlocBuilder<NavigationCubit, int>(
           builder: (context, state) {
             if (state == 0) {
@@ -336,12 +413,12 @@ class TodoView extends StatelessWidget {
                     children: [
                       const Padding(
                         padding: EdgeInsets.only(
-                          left: 40,
+                          left: 20,
                         ),
                         child: Align(
                             alignment: Alignment.topLeft,
                             child: Text(
-                              "ToDo",
+                              "✏️ To-Do",
                               style: TextStyle(
                                   fontSize: 28, fontWeight: FontWeight.w500),
                             )),
@@ -362,15 +439,15 @@ class TodoView extends StatelessWidget {
                                   shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10)),
                                   contentPadding: const EdgeInsets.all(8),
-                                  tileColor: const Color(0XFFEAD8B1),
+                                  tileColor: const Color(0XFFBACD92),
                                   title: Text(
                                     todo.text,
-                                    style: const TextStyle(),
+                                    style: const TextStyle(fontSize: 20),
                                   ),
-                                  subtitle: Text(todo.desc),
+                                  subtitle: Text(todo.desc,  style: TextStyle(color: Colors.white, fontSize: 18),),
                                   leading: Checkbox(
                                       checkColor: Colors.white,
-                                      activeColor: const Color(0XFF4F6F52),
+                                      activeColor:  Colors.green,
                                       value: todo.isCompleted,
                                       onChanged: (value) =>
                                           todoCubit.toggleCompletion(todo)),
@@ -385,7 +462,7 @@ class TodoView extends StatelessWidget {
                                       },
                                       icon: const Icon(
                                         Icons.delete_outline,
-                                        color: Colors.redAccent,
+                                        color: Colors.red,
                                       )),
                                 ),
                               );
@@ -403,12 +480,12 @@ class TodoView extends StatelessWidget {
                   children: [
                     const Padding(
                       padding: EdgeInsets.only(
-                        left: 40,
+                        left: 20,
                       ),
                       child: Align(
                           alignment: Alignment.topLeft,
                           child: Text(
-                            "Notes",
+                            "📝 Notes",
                             style: TextStyle(
                                 fontSize: 28, fontWeight: FontWeight.w500),
                           )),
@@ -438,7 +515,7 @@ class TodoView extends StatelessWidget {
                                   TextEditingController(text: note.note);
 
                               showModalBottomSheet(
-                                barrierColor: const Color(0XFFEAD8B1),
+                                barrierColor: const Color(0XFFBACD92),
                                 enableDrag: true,
                                 isDismissible: true,
                                 isScrollControlled:
@@ -464,20 +541,70 @@ class TodoView extends StatelessWidget {
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
-                                            IconButton(
-                                              onPressed: () {
-                                                final updatedNote = Note(
-                                                    id: note.id,
-                                                    heading:
-                                                        headingController.text,
-                                                    note: noteController.text,
-                                                    dateTime: DateTime.now());
+                                            Row(
+                                              children: [
 
-                                                noteCubit
-                                                    .updateNote(updatedNote);
-                                                Navigator.of(context).pop();
-                                              },
-                                              icon: const Icon(Icons.done),
+
+                                                                             IconButton(
+  onPressed: () {
+
+showDialog(context: context, builder: (context)=> AlertDialog(
+  alignment: Alignment.bottomCenter,
+  actionsAlignment: MainAxisAlignment.center,
+  actionsPadding: EdgeInsets.all(8),
+  actions: [
+
+    Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        TextButton(onPressed: (){
+          Navigator.of(context).pop();
+
+          noteCubit.deleteTodo(note);
+Navigator.of(context).pop();
+
+          
+
+
+
+        }, child: Text("Delete", style: TextStyle(color: Colors.red),)),
+
+         TextButton(onPressed: (){
+          Navigator.of(context).pop();
+
+
+        }, child: Text("Cancel"))
+      ],
+    )
+
+
+  ],
+
+
+));      
+
+  },
+  icon: const Icon(Icons.more_vert),
+),
+
+
+
+                                                IconButton(
+                                                  onPressed: () {
+                                                    final updatedNote = Note(
+                                                        id: note.id,
+                                                        heading:
+                                                            headingController.text,
+                                                        note: noteController.text,
+                                                        dateTime: DateTime.now());
+                                                
+                                                    noteCubit
+                                                        .updateNote(updatedNote);
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  icon: const Icon(Icons.done),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
@@ -486,7 +613,7 @@ class TodoView extends StatelessWidget {
                                             alignment: Alignment.topLeft,
                                             child: Text(
                                               formattedCompletedDate,
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                   fontSize: 20,
                                                   fontWeight: FontWeight.w400,
                                                   color: Colors.grey),
@@ -495,8 +622,11 @@ class TodoView extends StatelessWidget {
                                           height: 10,
                                         ),
                                         TextField(
+                                                                      style: TextStyle(fontSize: 22),
+
                                           controller: headingController,
                                           decoration: const InputDecoration(
+                                            floatingLabelBehavior: FloatingLabelBehavior.never,
                                             labelText: 'Heading',
                                             labelStyle: TextStyle(
                                               color: Colors.grey,
@@ -512,6 +642,12 @@ class TodoView extends StatelessWidget {
                                         TextField(
                                           controller: noteController,
                                           decoration: const InputDecoration(
+                                             labelText: 'Type...',
+                               labelStyle: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600),
+                                                                          floatingLabelBehavior: FloatingLabelBehavior.never,
                                             border: OutlineInputBorder(
                                               borderSide: BorderSide.none,
                                             ),
@@ -528,15 +664,35 @@ class TodoView extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(
                                   vertical: 5.0, horizontal: 10),
                               child: ListTile(
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                                contentPadding: const EdgeInsets.all(8),
-                                tileColor: const Color(0XFFEAD8B1),
-                                title: note.heading!.isNotEmpty
-                                    ? Text(note.heading!)
-                                    : const SizedBox.shrink(),
-                                subtitle: Text(note.note),
-                              ),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(10),
+  ),
+  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+  
+  
+  tileColor: const Color(0XFFBACD92),
+  title: note.heading!.isNotEmpty ? Text(note.heading!) : const SizedBox.shrink(),
+  titleTextStyle: const TextStyle(fontSize: 20, color: Colors.black),
+  subtitle: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      
+         Text(
+          
+          note.note,
+          style: const TextStyle(fontSize: 18),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 3,
+        ),
+      
+      const SizedBox(height: 2),
+      Text(
+        DateFormat.yMMMEd().add_jm().format(note.dateTime),
+        style: const TextStyle(color: Colors.white, fontSize: 14),
+      ),
+    ],
+  ),
+),
                             ),
                           );
                         },
@@ -551,6 +707,6 @@ class TodoView extends StatelessWidget {
           },
         ),
       );
-    });
+  });
   }
 }
