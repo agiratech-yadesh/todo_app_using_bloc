@@ -2,8 +2,9 @@
 
 
 import 'package:isar/isar.dart';
-import 'package:to_do_bloc/domain/models/note.dart';
-import 'package:to_do_bloc/domain/models/todo.dart';
+import 'package:to_do/domain/models/note.dart';
+import 'package:to_do/domain/models/todo.dart';
+
 
 
 part 'isar_todo.g.dart';

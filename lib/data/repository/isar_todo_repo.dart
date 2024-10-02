@@ -1,9 +1,9 @@
 
 
 import 'package:isar/isar.dart';
-import 'package:to_do_bloc/data/models/isar_todo.dart';
-import 'package:to_do_bloc/domain/models/todo.dart';
-import 'package:to_do_bloc/domain/repository/todo_repo.dart';
+import 'package:to_do/data/models/isar_todo.dart';
+import 'package:to_do/domain/models/todo.dart';
+import 'package:to_do/domain/repository/todo_repo.dart';
 
 class IsarTodoRepo implements TodoRepo {
 

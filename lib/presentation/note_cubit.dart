@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:to_do_bloc/domain/models/note.dart';
-import 'package:to_do_bloc/domain/repository/note_repo.dart';
+import 'package:to_do/domain/models/note.dart';
+import 'package:to_do/domain/repository/note_repo.dart';
+
 
 class NoteCubit extends Cubit<List<Note>> {
   final NoteRepo noteRepo;

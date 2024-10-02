@@ -1,22 +1,103 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:to_do_bloc/domain/models/note.dart';
-import 'package:to_do_bloc/domain/models/todo.dart';
-import 'package:to_do_bloc/domain/repository/note_repo.dart';
-import 'package:to_do_bloc/domain/repository/todo_repo.dart';
-import 'package:to_do_bloc/presentation/add_note.dart';
-import 'package:to_do_bloc/presentation/custom_location_float.dart';
-import 'package:to_do_bloc/presentation/note_cubit.dart';
-import 'package:to_do_bloc/presentation/todo_cubit.dart';
-import 'navigation_cubit.dart'; // Import the NavigationCubit
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:to_do/domain/models/note.dart';
+import 'package:to_do/domain/models/todo.dart';
+import 'package:to_do/domain/repository/note_repo.dart';
+import 'package:to_do/domain/repository/todo_repo.dart';
+import 'package:to_do/presentation/note_cubit.dart';
+import 'package:to_do/presentation/todo_cubit.dart';
 
-class TodoView extends StatelessWidget {
+import 'navigation_cubit.dart'; // Import the NavigationCubit
+import 'dart:ui' as ui; // Required for capturing the image
+
+
+class TodoView extends StatefulWidget {
   final TodoRepo todoRepo;
   final NoteRepo noteRepo;
   const TodoView({super.key, required this.todoRepo, required this.noteRepo});
 
+  @override
+  State<TodoView> createState() => _TodoViewState();
+}
+
+class _TodoViewState extends State<TodoView> {
+
+  String? _userName;
+
+
+    @override
+  void initState() {
+    super.initState();
+    _getUserName(); // Fetch user name when initializing
+  }
+
+  Future<void> _getUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userName = prefs.getString('userName');
+    
+    if (userName == null) {
+      // Ask for the name if not set
+      _askForUserName();
+    } else {
+      setState(() {
+        _userName = userName;
+      });
+    }
+  }
+
+
+
+  
+
+Future<void> _askForUserName() async {
+  String? userName = await showDialog<String>(
+    context: context,
+    builder: (context) {
+      String inputName = '';
+      return AlertDialog(
+        titlePadding: EdgeInsets.only(top: 30, left: 20, right: 20),
+        title: Text('Hey, your name please!', style: TextStyle(fontSize: 20),textAlign: TextAlign.center,),
+        content: TextField(
+          autofocus: true,
+          onChanged: (value) {
+            inputName = value;
+          },
+          decoration: InputDecoration(hintText: 'Name', hintStyle: TextStyle(color: Colors.grey, fontSize: 16),focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0XFFF5DAD2))) ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(inputName);
+            },
+            child: Text('Submit', style: TextStyle(color: Color(0XFF75A47F)),),
+          ),
+        ],
+      );
+    },
+  );
+
+  // Only store the name if it's not null and not empty
+  if (userName != null && userName.isNotEmpty) {
+    String formattedName = "$userName's"; // Add 's to the name
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userName', formattedName);
+
+    setState(() {
+      _userName = formattedName;
+    });
+  }
+}
+
+
+  
   Future<bool?> _confirmDelete(BuildContext context) {
     return showDialog<bool>(
       context: context,
@@ -116,7 +197,7 @@ class TodoView extends StatelessWidget {
                 TextButton(
                   style: TextButton.styleFrom(
                       backgroundColor: const Color(0XFFF5DAD2),
-                      foregroundColor: Color(0XFF75A47F),
+                      foregroundColor: const Color(0XFF75A47F),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8))),
                   onPressed: () {
@@ -162,6 +243,30 @@ class TodoView extends StatelessWidget {
   Widget build(BuildContext context) {
     final todoCubit = context.read<TodoCubit>();
     final noteCubit = BlocProvider.of<NoteCubit>(context);
+      final GlobalKey _globalKey = GlobalKey();
+
+Future<void> _captureAndShareScreenshot() async {
+    try {
+      // Capture the widget as an image
+      RenderRepaintBoundary boundary =
+          _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      Uint8List pngBytes = byteData!.buffer.asUint8List();
+
+      // Save the image to a temporary directory
+      final tempDir = await getTemporaryDirectory();
+      final file = await File('${tempDir.path}/screenshot.png').create();
+      await file.writeAsBytes(pngBytes);
+
+      final XFile xFile = XFile(file.path);
+      Share.shareXFiles([xFile],);
+    } catch (e) {
+      print("Error capturing screenshot: $e");
+    }
+  }
+
+
     DateTime now = DateTime.now();
 
     // Format the date and time
@@ -175,9 +280,9 @@ class TodoView extends StatelessWidget {
       // Update system navigation bar color based on the current state
       if (state == 0) {
         SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-          systemNavigationBarColor: Color(0XFFBACD92), // Color when state is 0
+          systemNavigationBarColor: Color(0XFFFCFFE0), // Color when state is 0
         ));
-      } else {
+      } if(state == 1) {
         SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
           systemNavigationBarColor: Color.fromARGB(255, 255, 255, 255), // Color for other states
         ));
@@ -187,192 +292,182 @@ class TodoView extends StatelessWidget {
         extendBody: true,
         
         backgroundColor: const Color(0XFFFCFFE0),
+        
         appBar: AppBar(
-          toolbarHeight: 20,
-          backgroundColor: const Color(0XFFFCFFE0),
+          scrolledUnderElevation: 0,
+  toolbarHeight: 70,
+  backgroundColor: const Color(0XFFFCFFE0),
+  title: BlocBuilder<NavigationCubit, int>(
+    builder: (context, state) {
+      // Change title based on the state value
+      String titleText = state == 0 ? "${_userName ?? ''} To-Do" : "${_userName ?? ''} Notes"; 
+      
+      return Align(
+        alignment: Alignment.topLeft,
+        child: Row(
+          children: [
+
+
+            Text(
+              titleText,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+
+            SizedBox(width: 10,),
+
+                        Image.asset('assets/note_icon.png', width: 40,),
+
+          ],
         ),
-        // appBar: AppBar(
-        //   title: const Text(
-        //     'Todo',
-        //     style: TextStyle(
-        //         color: Color(0XFFFEFBF6),
-        //         fontSize: 26,
-        //         fontWeight: FontWeight.w600),
-        //   ),
-        //   centerTitle: true,
-        //   backgroundColor: const Color(0XFF001F3F),
-        // ),
-            floatingActionButtonLocation: CustomFloatingActionButtonLocation(),
-
-        floatingActionButton: BlocBuilder<NavigationCubit, int>(
-          builder: (context, state) => FloatingActionButton(
-            
-            
-            backgroundColor: const Color(0XFFF5DAD2),
-            foregroundColor: const Color(0XFF75A47F),
-            onPressed: () {
-              if (state == 0) {
-                _showAddTodoBox(context);
-              } else {
-                showModalBottomSheet(
-                  barrierColor: const Color(0XFFBACD92),
-                  barrierLabel: 'Add Note',
-                  enableDrag: true,
-                  isDismissible: true,
-
-                  isScrollControlled: true, // Allows full-screen height control
-
-                  context: context,
-                  builder: (BuildContext context) {
-                    double screenHeight = MediaQuery.of(context).size.height;
-                    return Container(
-                      width: double.maxFinite,
-                      height: screenHeight * 0.8,
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: <Widget>[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Add Note',
-                                style: TextStyle(
-                                    fontSize: 22, fontWeight: FontWeight.w500),
-                              ),
-                              Row(
-                                children: [
-
-
-
-                                  IconButton(
-  onPressed: () {
-    if (noteTextController.text.isNotEmpty || headingTextController.text.isNotEmpty) {
-
-showDialog(context: context, builder: (context)=> AlertDialog(
-  alignment: Alignment.bottomCenter,
-  actionsAlignment: MainAxisAlignment.center,
-  actionsPadding: EdgeInsets.all(8),
-  actions: [
-
-    Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        TextButton(onPressed: (){
-          noteTextController.clear();
-          headingTextController.clear();
-
-          Navigator.of(context).pop();
-          
-
-
-
-        }, child: Text("Delete", style: TextStyle(color: Colors.red),)),
-
-         TextButton(onPressed: (){
-          Navigator.of(context).pop();
-
-        }, child: Text("Cancel", style: TextStyle(color: Colors.black54),))
-      ],
-    )
-
-
-  ],
-
-
-));      
-    }
-
-  },
-  icon: const Icon(Icons.more_vert),
+      );
+    },
+  ),
 ),
 
 
+            // floatingActionButtonLocation: CustomFloatingActionButtonLocation(),
 
+        floatingActionButton: BlocBuilder<NavigationCubit, int>(
+          builder: (context, state) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
+            child: FloatingActionButton(
+              
+              
+              backgroundColor: const Color(0XFFF5DAD2),
+              foregroundColor: const Color(0XFF75A47F),
+              onPressed: () {
+                if (state == 0) {
+                  _showAddTodoBox(context);
+                } else {
+                  showModalBottomSheet(
+  backgroundColor: Colors.white,
+  barrierColor: const Color(0XFFFCFFE0),
+  barrierLabel: 'Add Note',
+  enableDrag: true,
+  isDismissible: true,
+  isScrollControlled: true, // Allows full-screen height control
+  context: context,
+  builder: (BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height;
+    return Container(
+      width: double.maxFinite,
+      height: screenHeight * 0.8,
+      padding: const EdgeInsets.all(16.0),
+      child: Stack(
+        children: [
+          // Scrollable content
+          Padding(
+            padding: const EdgeInsets.only(top: 60), // Add padding to prevent overlap with the fixed row
+            child: ListView(
+              children: [
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    formattedDate,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  style: const TextStyle(fontSize: 22),
+                  controller: headingTextController,
+                  decoration: const InputDecoration(
+                    floatingLabelBehavior: FloatingLabelBehavior.never,
+                    labelText: 'Heading...',
+                    labelStyle: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                TextField(
+                  autofocus: true,
+                  controller: noteTextController,
+                  decoration: const InputDecoration(
+                    labelText: 'Type...',
+                    labelStyle: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    floatingLabelBehavior: FloatingLabelBehavior.never,
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  maxLines: null,
+                ),
+                // Add other widgets here
+              ],
+            ),
+          ),
+          // Fixed row at the top
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Add Note',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        noteTextController.clear();
+                        headingTextController.clear();
+                        Navigator.of(context).pop();
+                      },
+                      icon: const Icon(Icons.close),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        if (noteTextController.text.isNotEmpty) {
+                          noteCubit.addNote(
+                            headingTextController.text,
+                            noteTextController.text,
+                            DateTime.now(),
+                          );
+                          Navigator.of(context).pop();
+                        } else {
+                          FocusScope.of(context).unfocus();
+                        }
+                      },
+                      icon: const Icon(Icons.done),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  },
+);
 
-                                  IconButton(
-                                      onPressed: () {
-                                  
-                                        if(noteTextController.text.isNotEmpty){
-                                            noteCubit.addNote(
-                                          headingTextController.text,
-                                          
-                                          noteTextController.text,
-                                          DateTime.now()
-                                          
-                                        );
-                                        Navigator.of(context).pop();
-                                          
-                                  
-                                  
-                                        } else{
-                                  
-                                          FocusScope.of(context).unfocus();
-                                        }
-                                      
-                                      },
-                                      icon: const Icon(Icons.done)),
-                                ],
-                              )
-                            ],
-                          ),
-                          const SizedBox(
-                            height: 20,
-                          ),
-
-                          Align(
-                              alignment: Alignment.topLeft,
-                              child: Text(
-                                formattedDate,
-                                style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.grey),
-                              )),
-                          const SizedBox(
-                            height: 10,
-                          ),
-
-                          TextField(
-                            style: TextStyle(fontSize: 22),
-                            controller: headingTextController,
-                            
-                            decoration: const InputDecoration(
-                              
-                                                                          floatingLabelBehavior: FloatingLabelBehavior.never,
-
-                                labelText: 'Heading',
-                                labelStyle: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w600),
-                                border: OutlineInputBorder(
-                                    borderSide: BorderSide.none)),
-                          ),
-                          const SizedBox(height: 16.0),
-                          TextField(
-                            autofocus: true,
-                            controller: noteTextController,
-                            decoration: const InputDecoration(
-                              labelText: 'Type...',
-                               labelStyle: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600),
-                                                                          floatingLabelBehavior: FloatingLabelBehavior.never,
-
-                                border: OutlineInputBorder(
-                                    borderSide: BorderSide.none)),
-                            maxLines: null,
-                          ),
-                          // Add other widgets here
-                        ],
-                      ),
-                    );
-                  },
-                );
-              }
-            },
-            child: const Icon(Icons.add),
+                }
+              },
+              child: const Icon(Icons.add),
+            ),
           ),
         ),
        bottomNavigationBar: BlocBuilder<NavigationCubit, int>(
@@ -395,8 +490,9 @@ showDialog(context: context, builder: (context)=> AlertDialog(
         ),
       ],
       currentIndex: state,
-      backgroundColor: const Color(0XFFBACD92),
-      selectedItemColor: const Color(0XFFFCFFE0),
+      unselectedItemColor: Colors.black54,
+      backgroundColor: const Color(0XFFFCFFE0),
+      selectedItemColor: const Color(0XFF75A47F),
       onTap: (index) => context.read<NavigationCubit>().changeTab(index),
     );
   
@@ -411,63 +507,60 @@ showDialog(context: context, builder: (context)=> AlertDialog(
                 builder: (context, todos) {
                   return Column(
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.only(
-                          left: 20,
-                        ),
-                        child: Align(
-                            alignment: Alignment.topLeft,
-                            child: Text(
-                              "✏️ To-Do",
-                              style: TextStyle(
-                                  fontSize: 28, fontWeight: FontWeight.w500),
-                            )),
-                      ),
+               
                       const SizedBox(
                         height: 10,
                       ),
-                      Expanded(
-                        child: ListView.builder(
-                            itemCount: todos.length,
-                            itemBuilder: (context, index) {
-                              final todo = todos[index];
+                    Expanded(
+  child: todos.isNotEmpty
+      ? ListView.builder(
+          itemCount: todos.length,
+          itemBuilder: (context, index) {
+            // Reverse the todos list
+            final todo = todos.reversed.toList()[index];
 
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 5.0, horizontal: 10),
-                                child: ListTile(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                  contentPadding: const EdgeInsets.all(8),
-                                  tileColor: const Color(0XFFBACD92),
-                                  title: Text(
-                                    todo.text,
-                                    style: const TextStyle(fontSize: 20),
-                                  ),
-                                  subtitle: Text(todo.desc,  style: TextStyle(color: Colors.white, fontSize: 18),),
-                                  leading: Checkbox(
-                                      checkColor: Colors.white,
-                                      activeColor:  Colors.green,
-                                      value: todo.isCompleted,
-                                      onChanged: (value) =>
-                                          todoCubit.toggleCompletion(todo)),
-                                  trailing: IconButton(
-                                      onPressed: () {
-                                        _confirmDelete(context)
-                                            .then((confirmed) {
-                                          if (confirmed == true) {
-                                            todoCubit.deleteTodo(todo);
-                                          }
-                                        });
-                                      },
-                                      icon: const Icon(
-                                        Icons.delete_outline,
-                                        color: Colors.red,
-                                      )),
-                                ),
-                              );
-                            }),
-                      ),
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 10),
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                contentPadding: const EdgeInsets.all(8),
+                tileColor: const Color(0XFFBACD92),
+                title: Text(
+                  todo.text,
+                  style: const TextStyle(fontSize: 20),
+                ),
+                subtitle: Text(
+                  todo.desc,
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+                leading: Checkbox(
+                  checkColor: Colors.white,
+                  activeColor: Colors.green,
+                  value: todo.isCompleted,
+                  onChanged: (value) => todoCubit.toggleCompletion(todo),
+                ),
+                trailing: IconButton(
+                  onPressed: () {
+                    _confirmDelete(context).then((confirmed) {
+                      if (confirmed == true) {
+                        todoCubit.deleteTodo(todo);
+                      }
+                    });
+                  },
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.red,
+                  ),
+                ),
+              ),
+            );
+          },
+        )
+      : const Center(child: Text('Empty')),
+)
+
                     ],
                   );
                 },
@@ -478,26 +571,15 @@ showDialog(context: context, builder: (context)=> AlertDialog(
                   builder: (context, notes) {
                 return Column(
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(
-                        left: 20,
-                      ),
-                      child: Align(
-                          alignment: Alignment.topLeft,
-                          child: Text(
-                            "📝 Notes",
-                            style: TextStyle(
-                                fontSize: 28, fontWeight: FontWeight.w500),
-                          )),
-                    ),
+               
                     const SizedBox(
                       height: 10,
                     ),
                     Expanded(
-                      child: ListView.builder(
+                      child: notes.isEmpty ? Center(child: Text('Empty ')) : ListView.builder(
                         itemCount: notes.length,
                         itemBuilder: (context, index) {
-                          final note = notes[index];
+                          final note = notes.reversed.toList()[index];
 
                           return GestureDetector(
                             onTap: () {
@@ -515,7 +597,8 @@ showDialog(context: context, builder: (context)=> AlertDialog(
                                   TextEditingController(text: note.note);
 
                               showModalBottomSheet(
-                                barrierColor: const Color(0XFFBACD92),
+                                backgroundColor: Colors.white,
+                                barrierColor: const Color(0XFFFCFFE0),
                                 enableDrag: true,
                                 isDismissible: true,
                                 isScrollControlled:
@@ -528,131 +611,246 @@ showDialog(context: context, builder: (context)=> AlertDialog(
                                     width: double.maxFinite,
                                     height: screenHeight * 0.8,
                                     padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      children: <Widget>[
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text(
-                                              'Add Note',
-                                              style: TextStyle(
-                                                fontSize: 22,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            Row(
-                                              children: [
-
-
-                                                                             IconButton(
-  onPressed: () {
-
-showDialog(context: context, builder: (context)=> AlertDialog(
-  alignment: Alignment.bottomCenter,
-  actionsAlignment: MainAxisAlignment.center,
-  actionsPadding: EdgeInsets.all(8),
-  actions: [
-
-    Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        TextButton(onPressed: (){
-          Navigator.of(context).pop();
-
-          noteCubit.deleteTodo(note);
-Navigator.of(context).pop();
-
-          
-
-
-
-        }, child: Text("Delete", style: TextStyle(color: Colors.red),)),
-
-         TextButton(onPressed: (){
-          Navigator.of(context).pop();
-
-
-        }, child: Text("Cancel"))
-      ],
-    )
-
-
-  ],
-
-
-));      
-
-  },
-  icon: const Icon(Icons.more_vert),
-),
-
-
-
-                                                IconButton(
-                                                  onPressed: () {
-                                                    final updatedNote = Note(
-                                                        id: note.id,
-                                                        heading:
-                                                            headingController.text,
-                                                        note: noteController.text,
-                                                        dateTime: DateTime.now());
-                                                
-                                                    noteCubit
-                                                        .updateNote(updatedNote);
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  icon: const Icon(Icons.done),
+                                    child: Stack(
+                                      children: [
+                                         Positioned(
+                                          top: 0,
+                                          left: 0,
+                                          right: 0,
+                                           child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      const Text(
+                                                        'Add Note',
+                                                        style: TextStyle(
+                                                          fontSize: 22,
+                                                          fontWeight: FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                              
+                                              
+                                              
+                                              
+                                                                                  Builder(
+                                                          builder: (context) {
+                                                            return IconButton(
+                                                              icon: const Icon(Icons.more_vert),
+                                                              onPressed: () {
+                                                                final RenderBox button = context.findRenderObject() as RenderBox;
+                                                                final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+                                                                final Offset position = button.localToGlobal(Offset.zero, ancestor: overlay);
+                                              
+                                                                showMenu(
+                                                                  color: Color(0XFFF5DAD2),
+                                                                  context: context,
+                                                                  position: RelativeRect.fromLTRB(
+                                                                    position.dx,
+                                                                    position.dy + button.size.height,
+                                                                    position.dx + button.size.width,
+                                                                    position.dy + button.size.height,
+                                                                  ),
+                                                                  items: [
+                                                                    const PopupMenuItem<String>(
+                                                                      value: 'Share',
+                                                                      child: Text('Share'),
+                                                                    ),
+                                                                    const PopupMenuItem<String>(
+                                                                      value: 'Delete',
+                                                                      child: Text('Delete'),
+                                                                    ),
+                                                                 
+                                                                  ],
+                                                                ).then((value) {
+                                                                  if (value != null) {
+                                              
+                                              
+                                                                      switch (value) {
+                                                                      case 'Share':
+                                                                    showDialog(context: context, builder: (context)=> AlertDialog(
+                                                            alignment: Alignment.bottomCenter,
+                                                            actionsAlignment: MainAxisAlignment.center,
+                                                            actionsPadding: EdgeInsets.all(8),
+                                                            actions: [
+                                                          
+                                                              Column(
+                                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                                children: [
+                                              
+                                              
+                                                                  TextButton(onPressed: (){
+                                              Share.share('${headingController.text}\n${noteController.text}');
+                                              
+                                                          
+                                                          
+                                                          
+                                                                  }, child: Text("Share as text", style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400), )),
+                                              
+                                              
+                                                                  TextButton(onPressed: (){
+                                                                    _captureAndShareScreenshot();
+                                                                  }, child: Text("Share as image", style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400), )),
+                                              
+                                                                  Padding(
+                                                                    padding: const EdgeInsets.symmetric(horizontal: 18.0,),
+                                                                    child: Divider(thickness: .5,),
+                                                                  ),
+                                                          
+                                                                   TextButton(onPressed: (){
+                                                          Navigator.of(context).pop();
+                                                          
+                                                                  }, child: Text("Cancel", style: TextStyle(color: Colors.black54, fontSize: 16, fontWeight: FontWeight.w400),))
+                                                                ],
+                                                              )
+                                                          
+                                                          
+                                                            ],
+                                                          
+                                                          
+                                                          ));
+                                              
+                                              
+                                                                        break;
+                                                                      case 'Delete':
+                                              
+                                                          
+                                                          showDialog(context: context, builder: (context)=> AlertDialog(
+                                                            alignment: Alignment.bottomCenter,
+                                                            actionsAlignment: MainAxisAlignment.center,
+                                                            actionsPadding: EdgeInsets.all(8),
+                                                            actions: [
+                                                          
+                                                              Column(
+                                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                                children: [
+                                                                  TextButton(onPressed: (){
+                                                            Navigator.of(context).pop();
+                                              
+                                                        noteCubit.deleteTodo(note);
+                                              Navigator.of(context).pop();
+                                                          
+                                                          
+                                                          
+                                                                  }, child: Text("Delete", style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.w400),)),
+                                              
+                                                                  Padding(
+                                                                    padding: const EdgeInsets.symmetric(horizontal: 18.0,),
+                                                                    child: Divider(thickness: .5,),
+                                                                  ),
+                                                          
+                                                                   TextButton(onPressed: (){
+                                                          Navigator.of(context).pop();
+                                                          
+                                                                  }, child: Text("Cancel", style: TextStyle(color: Colors.black54, fontSize: 16, fontWeight: FontWeight.w400),))
+                                                                ],
+                                                              )
+                                                          
+                                                          
+                                                            ],
+                                                          
+                                                          
+                                                          ));      
+                                                              
+                                                                        break;
+                                                                     
+                                                                    }
+                                              
+                                                                    print('Selected: $value');
+                                                                  }
+                                                                });
+                                                              },
+                                                            );
+                                                          },
+                                                        ),
+                                              
+                                              
+                                                          IconButton(
+                                                            onPressed: () {
+                                                              final updatedNote = Note(
+                                                                  id: note.id,
+                                                                  heading:
+                                                                      headingController.text,
+                                                                  note: noteController.text,
+                                                                  dateTime: DateTime.now());
+                                                          
+                                                              noteCubit
+                                                                  .updateNote(updatedNote);
+                                                              Navigator.of(context).pop();
+                                                            },
+                                                            icon: const Icon(Icons.done),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                         ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 60.0),
+                                          child: SingleChildScrollView(
+                                            child: Column(
+                                              children: <Widget>[
+                                               
+                                                RepaintBoundary(
+                                                  key: _globalKey,
+                                                  child: Container(
+                                                    color: Colors.white,
+                                                    child: Column(
+                                                      children: [
+                                                        const SizedBox(height: 20),
+                                                        Align(
+                                                            alignment: Alignment.topLeft,
+                                                            child: Text(
+                                                              formattedCompletedDate,
+                                                              style: const TextStyle(
+                                                                  fontSize: 20,
+                                                                  fontWeight: FontWeight.w400,
+                                                                  color: Colors.grey),
+                                                            )),
+                                                        const SizedBox(
+                                                          height: 10,
+                                                        ),
+                                                        TextField(
+                                                                                      style: const TextStyle(fontSize: 22),
+                                                        
+                                                          controller: headingController,
+                                                          decoration: const InputDecoration(
+                                                            floatingLabelBehavior: FloatingLabelBehavior.never,
+                                                            labelText: 'Heading...',
+                                                            labelStyle: TextStyle(
+                                                              color: Colors.grey,
+                                                              fontSize: 22,
+                                                              fontWeight: FontWeight.w600,
+                                                            ),
+                                                            border: OutlineInputBorder(
+                                                              borderSide: BorderSide.none,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 16.0),
+                                                        TextField(
+                                                          controller: noteController,
+                                                          decoration: const InputDecoration(
+                                                             labelText: 'Type...',
+                                                                                       labelStyle: TextStyle(
+                                                                                            color: Colors.grey,
+                                                                                            fontSize: 14,
+                                                                                            fontWeight: FontWeight.w600),
+                                                                                          floatingLabelBehavior: FloatingLabelBehavior.never,
+                                                            border: OutlineInputBorder(
+                                                              borderSide: BorderSide.none,
+                                                            ),
+                                                          ),
+                                                          maxLines: null,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
                                                 ),
                                               ],
                                             ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 20),
-                                        Align(
-                                            alignment: Alignment.topLeft,
-                                            child: Text(
-                                              formattedCompletedDate,
-                                              style: const TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.w400,
-                                                  color: Colors.grey),
-                                            )),
-                                        const SizedBox(
-                                          height: 10,
-                                        ),
-                                        TextField(
-                                                                      style: TextStyle(fontSize: 22),
-
-                                          controller: headingController,
-                                          decoration: const InputDecoration(
-                                            floatingLabelBehavior: FloatingLabelBehavior.never,
-                                            labelText: 'Heading',
-                                            labelStyle: TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                            border: OutlineInputBorder(
-                                              borderSide: BorderSide.none,
-                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(height: 16.0),
-                                        TextField(
-                                          controller: noteController,
-                                          decoration: const InputDecoration(
-                                             labelText: 'Type...',
-                               labelStyle: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600),
-                                                                          floatingLabelBehavior: FloatingLabelBehavior.never,
-                                            border: OutlineInputBorder(
-                                              borderSide: BorderSide.none,
-                                            ),
-                                          ),
-                                          maxLines: null,
                                         ),
                                       ],
                                     ),

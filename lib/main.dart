@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:to_do_bloc/data/models/isar_todo.dart';
-import 'package:to_do_bloc/data/repository/isar_note_repo.dart';
-import 'package:to_do_bloc/data/repository/isar_todo_repo.dart';
-import 'package:to_do_bloc/domain/repository/note_repo.dart';
-import 'package:to_do_bloc/domain/repository/todo_repo.dart';
-import 'package:to_do_bloc/presentation/navigation_cubit.dart';
-import 'package:to_do_bloc/presentation/note_cubit.dart';
-import 'package:to_do_bloc/presentation/todo_cubit.dart';
-import 'package:to_do_bloc/presentation/todo_view.dart';
+import 'package:to_do/data/models/isar_todo.dart';
+import 'package:to_do/data/repository/isar_note_repo.dart';
+import 'package:to_do/data/repository/isar_todo_repo.dart';
+import 'package:to_do/domain/repository/note_repo.dart';
+import 'package:to_do/domain/repository/todo_repo.dart';
+import 'package:to_do/presentation/navigation_cubit.dart';
+import 'package:to_do/presentation/note_cubit.dart';
+import 'package:to_do/presentation/todo_cubit.dart';
+import 'package:to_do/presentation/todo_view.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'To-Do',
       theme: ThemeData(
        
         useMaterial3: true,

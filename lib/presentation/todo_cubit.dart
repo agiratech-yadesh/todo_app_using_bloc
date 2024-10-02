@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:to_do_bloc/domain/models/todo.dart';
-import 'package:to_do_bloc/domain/repository/todo_repo.dart';
+import 'package:to_do/domain/models/todo.dart';
+import 'package:to_do/domain/repository/todo_repo.dart';
+
 
 class TodoCubit extends Cubit<List<Todo>> {
   final TodoRepo todoRepo;

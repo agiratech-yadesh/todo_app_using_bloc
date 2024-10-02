@@ -1,6 +1,6 @@
 
 
-import 'package:to_do_bloc/domain/models/todo.dart';
+import 'package:to_do/domain/models/todo.dart';
 
 abstract class TodoRepo {
 

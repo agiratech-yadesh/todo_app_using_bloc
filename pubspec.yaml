@@ -1,4 +1,4 @@
-name: to_do_bloc
+name: to_do
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -40,6 +40,8 @@ dependencies:
   path_provider: ^2.1.4
   flutter_bloc: ^8.1.6
   intl: ^0.19.0
+  share_plus: ^10.0.2
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:
@@ -66,8 +68,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
+  assets:
+    - assets/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

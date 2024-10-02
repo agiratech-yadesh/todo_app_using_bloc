@@ -1,7 +1,8 @@
 import 'package:isar/isar.dart';
-import 'package:to_do_bloc/data/models/isar_todo.dart';
-import 'package:to_do_bloc/domain/models/note.dart';
-import 'package:to_do_bloc/domain/repository/note_repo.dart';
+import 'package:to_do/data/models/isar_todo.dart';
+import 'package:to_do/domain/models/note.dart';
+import 'package:to_do/domain/repository/note_repo.dart';
+
 
 class IsarNoteRepo implements NoteRepo{
 

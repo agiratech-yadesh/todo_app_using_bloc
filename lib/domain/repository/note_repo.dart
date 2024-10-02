@@ -1,4 +1,5 @@
-import 'package:to_do_bloc/domain/models/note.dart';
+
+import 'package:to_do/domain/models/note.dart';
 
 abstract class NoteRepo {
 
