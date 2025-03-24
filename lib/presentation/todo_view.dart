@@ -15,6 +15,7 @@ import 'package:to_do/domain/repository/todo_repo.dart';
 import 'package:to_do/presentation/note_cubit.dart';
 import 'package:to_do/presentation/todo_cubit.dart';
 import 'package:to_do/presentation/view_todo.dart';
+import 'package:to_do/presentation/widgets/scratch_card.dart';
 
 import 'navigation_cubit.dart';
 import 'dart:ui' as ui; // Required for capturing the image
@@ -37,6 +38,11 @@ class _TodoViewState extends State<TodoView> {
     _getUserName();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Future<void> _getUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userName = prefs.getString('userName');
@@ -49,6 +55,13 @@ class _TodoViewState extends State<TodoView> {
         _userName = userName;
       });
     }
+  }
+
+  void showScratchCardPopup(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => ScratchCardPopup(),
+    );
   }
 
   Future<void> _askForUserName() async {
@@ -462,6 +475,9 @@ class _TodoViewState extends State<TodoView> {
                                               noteTextController.text,
                                               DateTime.now(),
                                             );
+                                            noteTextController.clear();
+                                            headingTextController.clear();
+
                                             Navigator.of(context).pop();
                                           } else {
                                             FocusScope.of(context).unfocus();
@@ -572,12 +588,16 @@ class _TodoViewState extends State<TodoView> {
                                           ),
                                         ),
                                         leading: Checkbox(
-                                          checkColor: Colors.white,
-                                          activeColor: Colors.green,
-                                          value: todo.isCompleted,
-                                          onChanged: (value) =>
-                                              todoCubit.toggleCompletion(todo),
-                                        ),
+                                            checkColor: Colors.white,
+                                            activeColor: Colors.green,
+                                            value: todo.isCompleted,
+                                            onChanged: (value) {
+                                              todoCubit.toggleCompletion(todo);
+
+                                              if (todo.isCompleted == false) {
+                                                showScratchCardPopup(context);
+                                              }
+                                            }),
                                         trailing: IconButton(
                                           onPressed: () {
                                             _confirmDelete(context)
