@@ -16,6 +16,8 @@ import 'package:to_do/presentation/note_cubit.dart';
 import 'package:to_do/presentation/todo_cubit.dart';
 import 'package:to_do/presentation/view_todo.dart';
 import 'package:to_do/presentation/widgets/scratch_card.dart';
+import 'package:to_do/theme/theme_bloc.dart';
+import 'package:to_do/theme/theme_event.dart';
 
 import 'navigation_cubit.dart';
 import 'dart:ui' as ui; // Required for capturing the image
@@ -59,6 +61,7 @@ class _TodoViewState extends State<TodoView> {
 
   void showScratchCardPopup(BuildContext context) {
     showDialog(
+      barrierColor: Colors.transparent.withOpacity(0.5),
       context: context,
       builder: (context) => ScratchCardPopup(),
     );
@@ -117,19 +120,18 @@ class _TodoViewState extends State<TodoView> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
         title: const Text(
           'Delete Confirmation',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
         content: const Text(
           'Are you sure you want to delete this item?',
-          style: TextStyle(color: Colors.black),
         ),
         actions: [
           TextButton(
             style: TextButton.styleFrom(
                 foregroundColor: Colors.grey,
+                backgroundColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8))),
             onPressed: () {
@@ -157,99 +159,84 @@ class _TodoViewState extends State<TodoView> {
     final todoCubit = context.read<TodoCubit>();
     final titleTextController = TextEditingController();
     final descTextController = TextEditingController();
+    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    String? validateNotEmpty(String? value) {
+      if (value == null || value.trim().isEmpty) {
+        return 'This field cannot be empty';
+      }
+      return null;
+    }
 
     showDialog(
-        barrierColor: const Color(0XFFBACD92),
         context: context,
-        builder: (context) => AlertDialog(
-              backgroundColor: Colors.white,
-              title: const Center(
-                child: Text(
-                  "Add Todo",
-                  style: TextStyle(
-                      color: Colors.black, fontWeight: FontWeight.w600),
+        builder: (context) => Form(
+              key: _formKey,
+              child: AlertDialog(
+                title: const Center(
+                  child: Text(
+                    "Add Todo",
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
-              ),
-              content: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Title',
-                    style: TextStyle(
-                        color: Colors.black, fontWeight: FontWeight.w400),
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Title',
+                      style: TextStyle(fontWeight: FontWeight.w400),
+                    ),
+                    TextFormField(
+                      controller: titleTextController,
+                      maxLength: 100,
+                      validator: validateNotEmpty,
+                    ),
+                    const SizedBox(
+                      height: 30,
+                    ),
+                    const Text(
+                      'Description',
+                      style: TextStyle(fontWeight: FontWeight.w400),
+                    ),
+                    TextFormField(
+                      maxLines: 3,
+                      maxLength: 255,
+                      controller: descTextController,
+                      validator: validateNotEmpty,
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    style: TextButton.styleFrom(
+                        foregroundColor: Colors.grey,
+                        backgroundColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8))),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(
+                      'Cancel',
+                    ),
                   ),
-                  TextField(
-                    controller: titleTextController,
-                    maxLength: 100,
-                    style: const TextStyle(color: Colors.black),
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  const Text(
-                    'Description',
-                    style: TextStyle(
-                        color: Colors.black, fontWeight: FontWeight.w400),
-                  ),
-                  TextField(
-                    maxLines: 3,
-                    maxLength: 255,
-                    controller: descTextController,
-                    style: const TextStyle(color: Colors.black),
-                  ),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8))),
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        todoCubit.addTodo(
+                            titleTextController.text, descTextController.text);
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    child: const Text(
+                      'Add',
+                    ),
+                  )
                 ],
               ),
-              actions: [
-                TextButton(
-                  style: TextButton.styleFrom(
-                      foregroundColor: Colors.black54,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8))),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                      backgroundColor: const Color(0XFFF5DAD2),
-                      foregroundColor: const Color(0XFF75A47F),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8))),
-                  onPressed: () {
-                    if (titleTextController.text.isEmpty ||
-                        descTextController.text.isEmpty) {
-                      showDialog(
-                          barrierColor: const Color(0XFFBACD92),
-                          context: context,
-                          builder: (context) => AlertDialog(
-                                title: const Text(
-                                  'Title or Description should not be empty',
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                                actions: [
-                                  TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: const Text(
-                                        'Close',
-                                        style: TextStyle(color: Colors.red),
-                                      ))
-                                ],
-                              ));
-                    } else {
-                      todoCubit.addTodo(
-                          titleTextController.text, descTextController.text);
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: const Text(
-                    'Add',
-                  ),
-                )
-              ],
             ));
   }
 
@@ -304,13 +291,27 @@ class _TodoViewState extends State<TodoView> {
       //   ));
       // }
 
+      final isDark =
+          context.watch<ThemeBloc>().state.themeMode == ThemeMode.dark;
+
       return Scaffold(
         extendBody: true,
-        backgroundColor: const Color(0XFFFCFFE0),
         appBar: AppBar(
           scrolledUnderElevation: 0,
           toolbarHeight: 70,
-          backgroundColor: const Color(0XFFFCFFE0),
+          // backgroundColor: const Color(0XFFFCFFE0),
+          actions: [
+            IconButton(
+              icon: Icon(
+                isDark ? Icons.lightbulb : Icons.lightbulb_outline,
+                color: isDark ? Colors.yellow : Colors.grey,
+                size: MediaQuery.of(context).size.width * 0.06,
+              ),
+              onPressed: () {
+                context.read<ThemeBloc>().add(ToggleThemeEvent());
+              },
+            ),
+          ],
           title: BlocBuilder<NavigationCubit, int>(
             builder: (context, state) {
               String titleText = state == 0
@@ -345,152 +346,135 @@ class _TodoViewState extends State<TodoView> {
           builder: (context, state) => Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
             child: FloatingActionButton(
-              backgroundColor: const Color(0XFFF5DAD2),
-              foregroundColor: const Color(0XFF75A47F),
               onPressed: () {
                 if (state == 0) {
                   _showAddTodoBox(context);
                 } else {
                   showModalBottomSheet(
-                    backgroundColor: Colors.white,
-                    barrierColor: const Color(0XFFFCFFE0),
                     barrierLabel: 'Add Note',
                     enableDrag: true,
                     isDismissible: true,
-                    isScrollControlled:
-                        true, // Allows full-screen height control
+                    isScrollControlled: true,
                     context: context,
                     builder: (BuildContext context) {
                       double screenHeight = MediaQuery.of(context).size.height;
-                      return Container(
-                        width: double.maxFinite,
-                        height: screenHeight * 0.8,
-                        padding: const EdgeInsets.all(16.0),
-                        child: Stack(
-                          children: [
-                            // Scrollable content
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                  top:
-                                      60), // Add padding to prevent overlap with the fixed row
-                              child: ListView(
-                                children: [
-                                  Align(
-                                    alignment: Alignment.topLeft,
-                                    child: Text(
-                                      formattedDate,
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w400,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  TextField(
-                                    style: const TextStyle(fontSize: 22),
-                                    controller: headingTextController,
-                                    decoration: const InputDecoration(
-                                      floatingLabelBehavior:
-                                          FloatingLabelBehavior.never,
-                                      labelText: 'Heading...',
-                                      labelStyle: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide.none,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16.0),
-                                  TextField(
-                                    autofocus: true,
-                                    controller: noteTextController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Type...',
-                                      labelStyle: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      floatingLabelBehavior:
-                                          FloatingLabelBehavior.never,
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide.none,
-                                      ),
-                                    ),
-                                    maxLines: null,
-                                  ),
-                                  // Add other widgets here
-                                ],
-                              ),
-                            ),
-                            // Fixed row at the top
-                            Positioned(
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Row(
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context).viewInsets.bottom,
+                        ),
+                        child: Container(
+                          width: double.maxFinite,
+                          height: screenHeight * 0.5,
+                          padding: const EdgeInsets.all(16.0),
+                          child: Stack(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 60),
+                                child: SingleChildScrollView(
+                                  child: Column(
                                     children: [
-                                      // GestureDetector(
-                                      //   onTap: () {
-                                      //     Navigator.of(context).pop();
-                                      //   },
-                                      //   child: const Icon(Icons.arrow_back_ios),
-                                      // ),
-                                      // const SizedBox(
-                                      //   width: 5,
-                                      // ),
-                                      Text(
-                                        'Add Note',
-                                        style: TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.w500,
+                                      Align(
+                                        alignment: Alignment.topLeft,
+                                        child: Text(
+                                          formattedDate,
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.grey,
+                                          ),
                                         ),
                                       ),
+                                      const SizedBox(height: 10),
+                                      TextField(
+                                        style: const TextStyle(fontSize: 22),
+                                        controller: headingTextController,
+                                        decoration: const InputDecoration(
+                                          floatingLabelBehavior:
+                                              FloatingLabelBehavior.never,
+                                          labelText: 'Heading...',
+                                          labelStyle: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderSide: BorderSide.none,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16.0),
+                                      TextField(
+                                        autofocus: true,
+                                        controller: noteTextController,
+                                        decoration: const InputDecoration(
+                                          labelText: 'Type...',
+                                          labelStyle: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          floatingLabelBehavior:
+                                              FloatingLabelBehavior.never,
+                                          border: OutlineInputBorder(
+                                            borderSide: BorderSide.none,
+                                          ),
+                                        ),
+                                        maxLines: null,
+                                      ),
                                     ],
                                   ),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {
-                                          noteTextController.clear();
-                                          headingTextController.clear();
-                                          Navigator.of(context).pop();
-                                        },
-                                        icon: const Icon(Icons.close),
+                                ),
+                              ),
+                              Positioned(
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Add Note',
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w500,
                                       ),
-                                      IconButton(
-                                        onPressed: () {
-                                          if (noteTextController
-                                              .text.isNotEmpty) {
-                                            noteCubit.addNote(
-                                              headingTextController.text,
-                                              noteTextController.text,
-                                              DateTime.now(),
-                                            );
+                                    ),
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                          onPressed: () {
                                             noteTextController.clear();
                                             headingTextController.clear();
-
                                             Navigator.of(context).pop();
-                                          } else {
-                                            FocusScope.of(context).unfocus();
-                                          }
-                                        },
-                                        icon: const Icon(Icons.done),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                          },
+                                          icon: const Icon(Icons.close),
+                                        ),
+                                        IconButton(
+                                          onPressed: () {
+                                            if (noteTextController
+                                                .text.isNotEmpty) {
+                                              noteCubit.addNote(
+                                                headingTextController.text,
+                                                noteTextController.text,
+                                                DateTime.now(),
+                                              );
+                                              noteTextController.clear();
+                                              headingTextController.clear();
+                                              Navigator.of(context).pop();
+                                            } else {
+                                              FocusScope.of(context).unfocus();
+                                            }
+                                          },
+                                          icon: const Icon(Icons.done),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -524,9 +508,6 @@ class _TodoViewState extends State<TodoView> {
                 ),
               ],
               currentIndex: state,
-              unselectedItemColor: Colors.black54,
-              backgroundColor: const Color(0XFFFCFFE0),
-              selectedItemColor: const Color(0XFF75A47F),
               onTap: (index) =>
                   context.read<NavigationCubit>().changeTab(index),
             );
@@ -571,12 +552,13 @@ class _TodoViewState extends State<TodoView> {
                                               BorderRadius.circular(10),
                                         ),
                                         contentPadding: const EdgeInsets.all(8),
-                                        tileColor: const Color(0XFFBACD92),
                                         title: Text(
                                           todo.text,
                                           overflow: TextOverflow.ellipsis,
                                           maxLines: 3,
-                                          style: const TextStyle(fontSize: 20),
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                          ),
                                         ),
                                         subtitle: Text(
                                           overflow: TextOverflow.ellipsis,
@@ -659,8 +641,7 @@ class _TodoViewState extends State<TodoView> {
                                         TextEditingController(text: note.note);
 
                                     showModalBottomSheet(
-                                      backgroundColor: Colors.white,
-                                      barrierColor: const Color(0XFFFCFFE0),
+                                      showDragHandle: true,
                                       enableDrag: true,
                                       isDismissible: true,
                                       isScrollControlled:
@@ -669,276 +650,291 @@ class _TodoViewState extends State<TodoView> {
                                       builder: (BuildContext context) {
                                         double screenHeight =
                                             MediaQuery.of(context).size.height;
-                                        return Container(
-                                          width: double.maxFinite,
-                                          height: screenHeight * 0.8,
-                                          padding: const EdgeInsets.all(16.0),
-                                          child: Stack(
-                                            children: [
-                                              Positioned(
-                                                top: 0,
-                                                left: 0,
-                                                right: 0,
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Row(
-                                                      children: [
-                                                        GestureDetector(
-                                                          onTap: () {
-                                                            Navigator.of(
-                                                                    context)
-                                                                .pop();
-                                                          },
-                                                          child: const Icon(Icons
-                                                              .arrow_back_ios),
-                                                        ),
-                                                        const SizedBox(
-                                                          width: 5,
-                                                        ),
-                                                        const Text(
-                                                          'Note',
-                                                          style: TextStyle(
-                                                            fontSize: 22,
-                                                            fontWeight:
-                                                                FontWeight.w500,
+                                        return Padding(
+                                          padding: EdgeInsets.only(
+                                            bottom: MediaQuery.of(context)
+                                                .viewInsets
+                                                .bottom,
+                                          ),
+                                          child: Container(
+                                            width: double.maxFinite,
+                                            height: screenHeight * 0.8,
+                                            padding: const EdgeInsets.all(16.0),
+                                            child: Stack(
+                                              children: [
+                                                Positioned(
+                                                  top: 0,
+                                                  left: 0,
+                                                  right: 0,
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          GestureDetector(
+                                                            onTap: () {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop();
+                                                            },
+                                                            child: const Icon(Icons
+                                                                .arrow_back_ios),
                                                           ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    Row(
-                                                      children: [
-                                                        Builder(
-                                                          builder: (context) {
-                                                            return IconButton(
-                                                              icon: const Icon(
-                                                                  Icons
-                                                                      .more_vert),
-                                                              onPressed: () {
-                                                                final RenderBox
-                                                                    button =
-                                                                    context.findRenderObject()
-                                                                        as RenderBox;
-                                                                final RenderBox
-                                                                    overlay =
-                                                                    Overlay.of(
-                                                                            context)
-                                                                        .context
-                                                                        .findRenderObject() as RenderBox;
-                                                                final Offset
-                                                                    position =
-                                                                    button.localToGlobal(
-                                                                        Offset
-                                                                            .zero,
-                                                                        ancestor:
-                                                                            overlay);
+                                                          const SizedBox(
+                                                            width: 5,
+                                                          ),
+                                                          const Text(
+                                                            'Note',
+                                                            style: TextStyle(
+                                                              fontSize: 22,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          Builder(
+                                                            builder: (context) {
+                                                              return IconButton(
+                                                                icon: const Icon(
+                                                                    Icons
+                                                                        .more_vert),
+                                                                onPressed: () {
+                                                                  final RenderBox
+                                                                      button =
+                                                                      context.findRenderObject()
+                                                                          as RenderBox;
+                                                                  final RenderBox
+                                                                      overlay =
+                                                                      Overlay.of(
+                                                                              context)
+                                                                          .context
+                                                                          .findRenderObject() as RenderBox;
+                                                                  final Offset
+                                                                      position =
+                                                                      button.localToGlobal(
+                                                                          Offset
+                                                                              .zero,
+                                                                          ancestor:
+                                                                              overlay);
 
-                                                                showMenu(
-                                                                  color: const Color(
-                                                                      0XFFF5DAD2),
-                                                                  context:
-                                                                      context,
-                                                                  position:
-                                                                      RelativeRect
-                                                                          .fromLTRB(
-                                                                    position.dx,
-                                                                    position.dy +
-                                                                        button
-                                                                            .size
-                                                                            .height,
-                                                                    position.dx +
-                                                                        button
-                                                                            .size
-                                                                            .width,
-                                                                    position.dy +
-                                                                        button
-                                                                            .size
-                                                                            .height,
-                                                                  ),
-                                                                  items: [
-                                                                    const PopupMenuItem<
-                                                                        String>(
-                                                                      value:
-                                                                          'Share',
-                                                                      child: Text(
-                                                                          'Share'),
+                                                                  showMenu(
+                                                                    context:
+                                                                        context,
+                                                                    position:
+                                                                        RelativeRect
+                                                                            .fromLTRB(
+                                                                      position
+                                                                          .dx,
+                                                                      position.dy +
+                                                                          button
+                                                                              .size
+                                                                              .height,
+                                                                      position.dx +
+                                                                          button
+                                                                              .size
+                                                                              .width,
+                                                                      position.dy +
+                                                                          button
+                                                                              .size
+                                                                              .height,
                                                                     ),
-                                                                    const PopupMenuItem<
-                                                                        String>(
-                                                                      value:
-                                                                          'Delete',
-                                                                      child: Text(
-                                                                          'Delete'),
-                                                                    ),
-                                                                  ],
-                                                                ).then((value) {
-                                                                  if (value !=
-                                                                      null) {
-                                                                    switch (
-                                                                        value) {
-                                                                      case 'Share':
-                                                                        showDialog(
-                                                                            context:
-                                                                                context,
-                                                                            builder: (context) =>
-                                                                                AlertDialog(
-                                                                                  alignment: Alignment.bottomCenter,
-                                                                                  actionsAlignment: MainAxisAlignment.center,
-                                                                                  actionsPadding: const EdgeInsets.all(8),
-                                                                                  actions: [
-                                                                                    Column(
-                                                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                                                      children: [
-                                                                                        TextButton(
-                                                                                            onPressed: () {
-                                                                                              Share.share('${headingController.text}\n${noteController.text}');
-                                                                                            },
-                                                                                            child: const Text(
-                                                                                              "Share as text",
-                                                                                              style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400),
-                                                                                            )),
-                                                                                        TextButton(
-                                                                                            onPressed: () {
-                                                                                              captureAndShareScreenshot();
-                                                                                            },
-                                                                                            child: const Text(
-                                                                                              "Share as image",
-                                                                                              style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400),
-                                                                                            )),
-                                                                                        const Padding(
-                                                                                          padding: EdgeInsets.symmetric(
-                                                                                            horizontal: 18.0,
+                                                                    items: [
+                                                                      const PopupMenuItem<
+                                                                          String>(
+                                                                        value:
+                                                                            'Share',
+                                                                        child: Text(
+                                                                            'Share'),
+                                                                      ),
+                                                                      const PopupMenuItem<
+                                                                          String>(
+                                                                        value:
+                                                                            'Delete',
+                                                                        child: Text(
+                                                                            'Delete'),
+                                                                      ),
+                                                                    ],
+                                                                  ).then(
+                                                                      (value) {
+                                                                    if (value !=
+                                                                        null) {
+                                                                      switch (
+                                                                          value) {
+                                                                        case 'Share':
+                                                                          showDialog(
+                                                                              context: context,
+                                                                              barrierColor: Colors.transparent.withOpacity(0.5),
+                                                                              builder: (context) => AlertDialog(
+                                                                                    alignment: Alignment.bottomCenter,
+                                                                                    actionsAlignment: MainAxisAlignment.center,
+                                                                                    actionsPadding: const EdgeInsets.all(8),
+                                                                                    actions: [
+                                                                                      Column(
+                                                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                                                        children: [
+                                                                                          TextButton(
+                                                                                              style: TextButton.styleFrom(backgroundColor: Colors.transparent),
+                                                                                              onPressed: () {
+                                                                                                Share.share('${headingController.text}\n${noteController.text}');
+                                                                                              },
+                                                                                              child: const Text(
+                                                                                                "Share as text",
+                                                                                                style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400),
+                                                                                              )),
+                                                                                          TextButton(
+                                                                                              style: TextButton.styleFrom(backgroundColor: Colors.transparent),
+                                                                                              onPressed: () {
+                                                                                                captureAndShareScreenshot();
+                                                                                              },
+                                                                                              child: const Text(
+                                                                                                "Share as image",
+                                                                                                style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.w400),
+                                                                                              )),
+                                                                                          const Padding(
+                                                                                            padding: EdgeInsets.symmetric(
+                                                                                              horizontal: 18.0,
+                                                                                            ),
+                                                                                            child: Divider(
+                                                                                              thickness: .5,
+                                                                                            ),
                                                                                           ),
-                                                                                          child: Divider(
-                                                                                            thickness: .5,
-                                                                                          ),
-                                                                                        ),
-                                                                                        TextButton(
-                                                                                            onPressed: () {
-                                                                                              Navigator.of(context).pop();
-                                                                                            },
-                                                                                            child: const Text(
-                                                                                              "Cancel",
-                                                                                              style: TextStyle(color: Colors.black54, fontSize: 16, fontWeight: FontWeight.w400),
-                                                                                            ))
-                                                                                      ],
-                                                                                    )
-                                                                                  ],
-                                                                                ));
+                                                                                          TextButton(
+                                                                                              style: TextButton.styleFrom(backgroundColor: Colors.transparent),
+                                                                                              onPressed: () {
+                                                                                                Navigator.of(context).pop();
+                                                                                              },
+                                                                                              child: const Text(
+                                                                                                "Cancel",
+                                                                                                style: TextStyle(color: Colors.black54, fontSize: 16, fontWeight: FontWeight.w400),
+                                                                                              ))
+                                                                                        ],
+                                                                                      )
+                                                                                    ],
+                                                                                  ));
 
-                                                                        break;
-                                                                      case 'Delete':
-                                                                        showDialog(
-                                                                            context:
-                                                                                context,
-                                                                            builder: (context) =>
-                                                                                AlertDialog(
-                                                                                  alignment: Alignment.bottomCenter,
-                                                                                  actionsAlignment: MainAxisAlignment.center,
-                                                                                  actionsPadding: const EdgeInsets.all(8),
-                                                                                  actions: [
-                                                                                    Column(
-                                                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                                                      children: [
-                                                                                        TextButton(
-                                                                                            onPressed: () {
-                                                                                              Navigator.of(context).pop();
+                                                                          break;
+                                                                        case 'Delete':
+                                                                          showDialog(
+                                                                              context: context,
+                                                                              barrierColor: Colors.transparent.withOpacity(0.5),
+                                                                              builder: (context) => AlertDialog(
+                                                                                    alignment: Alignment.bottomCenter,
+                                                                                    actionsAlignment: MainAxisAlignment.center,
+                                                                                    actionsPadding: const EdgeInsets.all(8),
+                                                                                    actions: [
+                                                                                      Column(
+                                                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                                                        children: [
+                                                                                          TextButton(
+                                                                                              style: TextButton.styleFrom(backgroundColor: Colors.transparent),
+                                                                                              onPressed: () {
+                                                                                                Navigator.of(context).pop();
 
-                                                                                              noteCubit.deleteTodo(note);
-                                                                                              Navigator.of(context).pop();
-                                                                                            },
-                                                                                            child: const Text(
-                                                                                              "Delete",
-                                                                                              style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.w400),
-                                                                                            )),
-                                                                                        const Padding(
-                                                                                          padding: EdgeInsets.symmetric(
-                                                                                            horizontal: 18.0,
+                                                                                                noteCubit.deleteTodo(note);
+                                                                                                Navigator.of(context).pop();
+                                                                                              },
+                                                                                              child: const Text(
+                                                                                                "Delete",
+                                                                                                style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.w400),
+                                                                                              )),
+                                                                                          const Padding(
+                                                                                            padding: EdgeInsets.symmetric(
+                                                                                              horizontal: 18.0,
+                                                                                            ),
+                                                                                            child: Divider(
+                                                                                              thickness: .5,
+                                                                                            ),
                                                                                           ),
-                                                                                          child: Divider(
-                                                                                            thickness: .5,
-                                                                                          ),
-                                                                                        ),
-                                                                                        TextButton(
-                                                                                            onPressed: () {
-                                                                                              Navigator.of(context).pop();
-                                                                                            },
-                                                                                            child: const Text(
-                                                                                              "Cancel",
-                                                                                              style: TextStyle(color: Colors.black54, fontSize: 16, fontWeight: FontWeight.w400),
-                                                                                            ))
-                                                                                      ],
-                                                                                    )
-                                                                                  ],
-                                                                                ));
+                                                                                          TextButton(
+                                                                                              style: TextButton.styleFrom(backgroundColor: Colors.transparent),
+                                                                                              onPressed: () {
+                                                                                                Navigator.of(context).pop();
+                                                                                              },
+                                                                                              child: const Text(
+                                                                                                "Cancel",
+                                                                                                style: TextStyle(color: Colors.black54, fontSize: 16, fontWeight: FontWeight.w400),
+                                                                                              ))
+                                                                                        ],
+                                                                                      )
+                                                                                    ],
+                                                                                  ));
 
-                                                                        break;
+                                                                          break;
+                                                                      }
                                                                     }
-                                                                  }
-                                                                });
-                                                              },
-                                                            );
-                                                          },
-                                                        ),
-                                                        IconButton(
-                                                          onPressed: () {
-                                                            final updatedNote = Note(
-                                                                id: note.id,
-                                                                heading:
-                                                                    headingController
-                                                                        .text,
-                                                                note:
-                                                                    noteController
-                                                                        .text,
-                                                                dateTime:
-                                                                    DateTime
-                                                                        .now());
+                                                                  });
+                                                                },
+                                                              );
+                                                            },
+                                                          ),
+                                                          IconButton(
+                                                            onPressed: () {
+                                                              final updatedNote = Note(
+                                                                  id: note.id,
+                                                                  heading:
+                                                                      headingController
+                                                                          .text,
+                                                                  note:
+                                                                      noteController
+                                                                          .text,
+                                                                  dateTime:
+                                                                      DateTime
+                                                                          .now());
 
-                                                            noteCubit.updateNote(
-                                                                updatedNote);
-                                                            Navigator.of(
-                                                                    context)
-                                                                .pop();
-                                                          },
-                                                          icon: const Icon(
-                                                              Icons.done),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
+                                                              noteCubit.updateNote(
+                                                                  updatedNote);
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop();
+                                                            },
+                                                            icon: const Icon(
+                                                                Icons.done),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
-                                              ),
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                    top: 60.0),
-                                                child: SingleChildScrollView(
-                                                  child: Column(
-                                                    children: <Widget>[
-                                                      RepaintBoundary(
-                                                        key: globalKey,
-                                                        child: Container(
-                                                          color: Colors.white,
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          top: 60.0),
+                                                  child: SingleChildScrollView(
+                                                    child: Column(
+                                                      children: <Widget>[
+                                                        RepaintBoundary(
+                                                          key: globalKey,
                                                           child: Column(
                                                             children: [
                                                               const SizedBox(
                                                                   height: 20),
-                                                              Align(
-                                                                  alignment:
-                                                                      Alignment
-                                                                          .topLeft,
-                                                                  child: Text(
-                                                                    formattedCompletedDate,
-                                                                    style: const TextStyle(
-                                                                        fontSize:
-                                                                            20,
-                                                                        fontWeight:
-                                                                            FontWeight
-                                                                                .w400,
-                                                                        color: Colors
-                                                                            .grey),
-                                                                  )),
+                                                              Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .only(
+                                                                        left:
+                                                                            12.0),
+                                                                child: Align(
+                                                                    alignment:
+                                                                        Alignment
+                                                                            .topLeft,
+                                                                    child: Text(
+                                                                      formattedCompletedDate,
+                                                                      style: const TextStyle(
+                                                                          fontSize:
+                                                                              20,
+                                                                          fontWeight: FontWeight
+                                                                              .w400,
+                                                                          color:
+                                                                              Colors.grey),
+                                                                    )),
+                                                              ),
                                                               const SizedBox(
                                                                 height: 10,
                                                               ),
@@ -1006,12 +1002,12 @@ class _TodoViewState extends State<TodoView> {
                                                             ],
                                                           ),
                                                         ),
-                                                      ),
-                                                    ],
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
                                         );
                                       },
@@ -1027,12 +1023,11 @@ class _TodoViewState extends State<TodoView> {
                                       contentPadding:
                                           const EdgeInsets.symmetric(
                                               horizontal: 20, vertical: 8),
-                                      tileColor: const Color(0XFFBACD92),
                                       title: note.heading!.isNotEmpty
-                                          ? Text(note.heading!)
+                                          ? Text(
+                                              note.heading!,
+                                            )
                                           : const SizedBox.shrink(),
-                                      titleTextStyle: const TextStyle(
-                                          fontSize: 20, color: Colors.black),
                                       subtitle: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -1049,9 +1044,8 @@ class _TodoViewState extends State<TodoView> {
                                             DateFormat.yMMMEd()
                                                 .add_jm()
                                                 .format(note.dateTime),
-                                            style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 14),
+                                            style:
+                                                const TextStyle(fontSize: 14),
                                           ),
                                         ],
                                       ),

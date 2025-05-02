@@ -40,6 +40,7 @@ class _ScratchCardPopupState extends State<ScratchCardPopup> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      
       backgroundColor: Colors.transparent,
       content: Stack(
         alignment: Alignment.center,
@@ -60,7 +61,9 @@ class _ScratchCardPopupState extends State<ScratchCardPopup> {
                       key: _scratchKey,
                       brushSize: 50,
                       threshold: 50,
-                      color: Color(0XFFBACD92),
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? Color(0XFFBACD92)
+                          : Colors.grey[850]!,
                       image: Image.asset(
                         'assets/scratch_icon.png',
                         fit: BoxFit.cover,
@@ -74,13 +77,14 @@ class _ScratchCardPopupState extends State<ScratchCardPopup> {
                       child: Container(
                         padding: EdgeInsets.all(10),
                         alignment: Alignment.center,
-                        color: Colors.white,
+                        color: Theme.of(context).brightness == Brightness.light
+                            ? Colors.white
+                            : Colors.grey[800],
                         child: Text(
                           randomMessage, // Same message before and after reveal
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black,
                           ),
                           textAlign: TextAlign.center,
                         ),

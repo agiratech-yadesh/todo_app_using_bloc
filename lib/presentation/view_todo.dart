@@ -15,7 +15,6 @@ class ViewTodo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0XFFFCFFE0),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -28,7 +27,6 @@ class ViewTodo extends StatelessWidget {
           )
         ],
       ),
-      backgroundColor: const Color(0XFFFCFFE0),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10),

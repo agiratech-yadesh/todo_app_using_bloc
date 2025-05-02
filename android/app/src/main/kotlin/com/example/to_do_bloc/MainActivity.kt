@@ -1,4 +1,4 @@
-package com.example.to_do_bloc
+package com.example.toDo
 
 import io.flutter.embedding.android.FlutterActivity
 
